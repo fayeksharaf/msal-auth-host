@@ -1,0 +1,21 @@
+<!-- auth.html -->
+<!DOCTYPE html>
+<html>
+<head><title>Redirect Handler</title></head>
+<body>
+  <script src="msal-browser.min.js"></script>
+  <script>
+    const msalInstance = new msal.PublicClientApplication({
+      auth: {
+        clientId: "42d4bf53-30f7-4522-ba5e-83a5dff792d6",
+        authority: "https://login.microsoftonline.com/2b30530b-69b6-4457-b818-481cb53d42ae",
+        redirectUri: chrome.runtime.getURL("auth.html")
+      }
+    });
+
+    msalInstance.handleRedirectPromise()
+      .then(() => window.close())
+      .catch(console.error);
+  </script>
+</body>
+</html>
