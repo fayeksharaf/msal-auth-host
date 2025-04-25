@@ -4,10 +4,24 @@
   <meta charset="UTF-8">
   <title>MSAL Redirect</title>
   <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      text-align: center;
+    }
+    #continue-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      display: none;
+    }
+  </style>
 </head>
 <body>
-  <h2>Processing authentication...</h2>
+  <h2>🔐 Signing in with Microsoft</h2>
   <div id="status">🔄 Waiting for token...</div>
+  <button id="continue-btn">✅ Continue</button>
 
   <script>
     const msalInstance = new msal.PublicClientApplication({
@@ -18,25 +32,28 @@
       }
     });
 
+    const status = document.getElementById("status");
+    const continueBtn = document.getElementById("continue-btn");
+
     msalInstance.handleRedirectPromise()
       .then((response) => {
         if (response && response.accessToken) {
-          document.getElementById("status").textContent = "✅ Token acquired! You can close this window.";
-          console.log("✅ Token response:", response);
-
-          // Optionally pass token back to your extension via chrome.runtime.sendMessage
-          // Or store in localStorage and poll from popup
+          console.log("✅ Token:", response.accessToken);
+          status.textContent = "✅ Login successful!";
           localStorage.setItem("msalAccessToken", response.accessToken);
-
-          setTimeout(() => window.close(), 2000);
+          continueBtn.style.display = "inline-block";
         } else {
-          document.getElementById("status").textContent = "⚠️ No token found in redirect response.";
+          status.textContent = "⚠️ No token found. Please try again.";
         }
       })
-      .catch((error) => {
-        document.getElementById("status").textContent = "❌ Error processing token.";
-        console.error("❌ Redirect error:", error);
+      .catch((err) => {
+        console.error("Redirect error:", err);
+        status.textContent = "❌ Login error. See console.";
       });
+
+    continueBtn.addEventListener("click", () => {
+      window.close(); // Or navigate elsewhere if you prefer
+    });
   </script>
 </body>
 </html>
