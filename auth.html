@@ -1,21 +1,38 @@
-<!-- auth.html -->
 <!DOCTYPE html>
 <html>
-<head><title>Redirect Handler</title></head>
-<body>
+<head>
+  <meta charset="UTF-8">
+  <title>MSAL Redirect</title>
   <script src="msal-browser.min.js"></script>
+</head>
+<body>
+  <h2>Authenticating...</h2>
+
   <script>
     const msalInstance = new msal.PublicClientApplication({
       auth: {
         clientId: "42d4bf53-30f7-4522-ba5e-83a5dff792d6",
         authority: "https://login.microsoftonline.com/2b30530b-69b6-4457-b818-481cb53d42ae",
-        redirectUri: chrome.runtime.getURL("auth.html")
+        redirectUri: "https://fayeksharaf.github.io/msal-auth-host/"
       }
     });
 
-    msalInstance.handleRedirectPromise()
-      .then(() => window.close())
-      .catch(console.error);
+    msalInstance.handleRedirectPromise().then((response) => {
+      if (response) {
+        console.log("✅ Token response:", response);
+
+        // Store token (you can modify this)
+        localStorage.setItem("msalAccessToken", response.accessToken);
+
+        // Optional: close window or redirect
+        window.close(); // or: window.location.href = "chrome-extension://[YOUR_ID]/popup/popup.html";
+      } else {
+        console.log("⏳ No token response found in URL.");
+      }
+    }).catch(error => {
+      console.error("❌ Redirect error:", error);
+      document.body.innerHTML = "<p>❌ Auth failed. See console.</p>";
+    });
   </script>
 </body>
 </html>
