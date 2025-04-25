@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>MSAL Redirect</title>
-  <script src="msal-browser.min.js"></script>
+  <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
 </head>
 <body>
-  <h2>Authenticating...</h2>
+  <h2>Processing authentication...</h2>
+  <div id="status">🔄 Waiting for token...</div>
 
   <script>
     const msalInstance = new msal.PublicClientApplication({
@@ -17,22 +18,25 @@
       }
     });
 
-    msalInstance.handleRedirectPromise().then((response) => {
-      if (response) {
-        console.log("✅ Token response:", response);
+    msalInstance.handleRedirectPromise()
+      .then((response) => {
+        if (response && response.accessToken) {
+          document.getElementById("status").textContent = "✅ Token acquired! You can close this window.";
+          console.log("✅ Token response:", response);
 
-        // Store token (you can modify this)
-        localStorage.setItem("msalAccessToken", response.accessToken);
+          // Optionally pass token back to your extension via chrome.runtime.sendMessage
+          // Or store in localStorage and poll from popup
+          localStorage.setItem("msalAccessToken", response.accessToken);
 
-        // Optional: close window or redirect
-        window.close(); // or: window.location.href = "chrome-extension://[YOUR_ID]/popup/popup.html";
-      } else {
-        console.log("⏳ No token response found in URL.");
-      }
-    }).catch(error => {
-      console.error("❌ Redirect error:", error);
-      document.body.innerHTML = "<p>❌ Auth failed. See console.</p>";
-    });
+          setTimeout(() => window.close(), 2000);
+        } else {
+          document.getElementById("status").textContent = "⚠️ No token found in redirect response.";
+        }
+      })
+      .catch((error) => {
+        document.getElementById("status").textContent = "❌ Error processing token.";
+        console.error("❌ Redirect error:", error);
+      });
   </script>
 </body>
 </html>
